@@ -15,31 +15,36 @@
 // Don't get distracted by how threads are spawned and joined. We will practice
 // that later in the exercises about threads.
 
+// https://doc.rust-lang.org/book/ch16-04-extensible-concurrency-sync-and-send.html
+
 // Don't change the lines below.
 #![forbid(unused_imports)]
-use std::{sync::Arc, thread};
+use std::{ sync::Arc, thread };
 
 fn main() {
-    let numbers: Vec<_> = (0..100u32).collect();
+  let numbers: Vec<_> = (0..100u32).collect();
 
-    // TODO: Define `shared_numbers` by using `Arc`.
-    // let shared_numbers = ???;
+  // TODO: Define `shared_numbers` by using `Arc`.
+  let shared_numbers = Arc::new(numbers);
 
-    let mut join_handles = Vec::new();
+  let mut join_handles = Vec::new();
 
-    for offset in 0..8 {
-        // TODO: Define `child_numbers` using `shared_numbers`.
-        // let child_numbers = ???;
+  for offset in 0..8 {
+    // TODO: Define `child_numbers` using `shared_numbers`.
+    let child_numbers = Arc::clone(&shared_numbers);
 
-        let handle = thread::spawn(move || {
-            let sum: u32 = child_numbers.iter().filter(|&&n| n % 8 == offset).sum();
-            println!("Sum of offset {offset} is {sum}");
-        });
+    let handle = thread::spawn(move || {
+      let sum: u32 = child_numbers
+        .iter()
+        .filter(|&&n| n % 8 == offset)
+        .sum();
+      println!("Sum of offset {offset} is {sum}");
+    });
 
-        join_handles.push(handle);
-    }
+    join_handles.push(handle);
+  }
 
-    for handle in join_handles.into_iter() {
-        handle.join().unwrap();
-    }
+  for handle in join_handles.into_iter() {
+    handle.join().unwrap();
+  }
 }
